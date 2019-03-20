@@ -47,6 +47,9 @@ def simple(data):
     return label 
 
 def preprocess(data):
+    '''
+    Shuffle pos & neg samples
+    '''
     data_neg = sample_negative(data)
     c = len(data)
 

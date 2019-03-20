@@ -60,6 +60,9 @@ class basicNet(nn.Module):
         self.fc_cls = nn.Linear(128, 1)
 
     def match(self, x, y):
+        # x = self.fc_x(x)
+        # y = self.fc_y(y)
+
         # FIXME: the function f(x, y) can vary   *  max  cat 
         # f = torch.max(x, y)
         # f = torch.cat((x,y), dim=-1)
@@ -67,7 +70,6 @@ class basicNet(nn.Module):
         # f = torch.relu(f)
         output = self.fc_cls(f)
         output = torch.sigmoid(output)
-
         return output
 
     def forward(self, x, y):
@@ -75,9 +77,8 @@ class basicNet(nn.Module):
         y = self.feature_extractor_y(y)
 
         output = self.match(x, y)
+
         return output
-
-
 
 def init_weights(m):
         # print(m)

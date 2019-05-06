@@ -13,7 +13,7 @@ class TDataSet(Data.Dataset):
     def __init__(self, data, label, transform=None):
         self.dataset = data
         self.transform = transform 
-        self.label = torch.from_numpy(label).type(torch.long)
+        self.label = torch.from_numpy(label).type(torch.float)
     
     def __getitem__(self, idx):
         DNA = self.dataset[idx]
@@ -47,14 +47,14 @@ def simple(data):
     return label 
 
 def preprocess(data):
+    '''
+    Shuffle pos & neg samples
+    '''
     data_neg = sample_negative(data)
     c = len(data)
 
     data = np.concatenate((data, data_neg))
     label = np.concatenate((np.zeros(c), np.ones(c)))
-    # FIXME: the most simple label
-    # label = simple(data)
-    
     
     ids = np.array([i for i in range(2*c)])
     np.random.shuffle(ids)
@@ -75,8 +75,9 @@ def create_dataLoader(opt):
     opt.train_count = len(train_data)
     train_dataset = TDataSet(train_data, train_label, transform=toTensor)
     # FIXME: shuffle = False for debugging
-    train_loader = Data.DataLoader(dataset=train_dataset, batch_size=opt.batch_size, shuffle=False, drop_last=True)
+    train_loader = Data.DataLoader(dataset=train_dataset, batch_size=opt.batch_size, shuffle=True, drop_last=False)
 
+    opt.validate_count = len(validate_data)
     validate_dataset = TDataSet(validate_data, validate_label, transform=toTensor)
-    validate_loader = Data.DataLoader(dataset=validate_dataset, batch_size=opt.batch_size, shuffle=True, drop_last=True)
+    validate_loader = Data.DataLoader(dataset=validate_dataset, batch_size=opt.batch_size, shuffle=False, drop_last=False)
     return train_loader, validate_loader

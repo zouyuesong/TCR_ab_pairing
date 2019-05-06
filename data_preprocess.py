@@ -5,7 +5,7 @@ import torchvision
 from IPython import embed
 from utils import get_onehot, to_BLOSUM, get_onehot4DNA
     
-def data_preprocess(dir='../Data/a_b_chain/'):
+def data_preprocess(dir='../../Data/a_b_chain/'):
     with open(dir + 'SRR_Acc_List.txt') as f:
         SRR_list = f.readlines()
     raw_data_a = []

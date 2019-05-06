@@ -130,6 +130,7 @@ for epoch in range(opt.epoch):
         # print(output[:,0].data.cpu().numpy().mean(), output[:,1].data.cpu().numpy().mean(), label.data.cpu().numpy().mean())
         # embed()
 
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
@@ -158,30 +159,31 @@ for epoch in range(opt.epoch):
     if epoch % 10 == 0:
         print((output.view(-1)-0.5)*(label-0.5)*4)
         net.eval()
-        validate_losses, validate_acc = [], 0
-        for step, (pair, label) in enumerate(validate_loader):
+        with torch.no_grad():
+            validate_losses, validate_acc = [], 0
+            for step, (pair, label) in enumerate(validate_loader):
 
-            a_chain = pair[:,:,:opt.length,:]
-            b_chain = pair[:,:,opt.length:,:]
-            # a_chain = a_chain.cuda()
-            # b_chain = b_chain.cuda()
-            # label = label.cuda()
-        
-            output = net(a_chain, b_chain)
-            loss = loss_func(output, label)
-            pred = (output.view(-1).data.cpu().numpy() > 0.5)
-            validate_acc += sum(pred == label.data.cpu().numpy())
-            validate_losses.append(loss.data.cpu().numpy())
+                a_chain = pair[:,:,:opt.length,:]
+                b_chain = pair[:,:,opt.length:,:]
+                # a_chain = a_chain.cuda()
+                # b_chain = b_chain.cuda()
+                # label = label.cuda()
+            
+                output = net(a_chain, b_chain)
+                loss = loss_func(output, label)
+                pred = (output.view(-1).data.cpu().numpy() > 0.5)
+                validate_acc += sum(pred == label.data.cpu().numpy())
+                validate_losses.append(loss.data.cpu().numpy())
 
-        validate_losses = np.array(validate_losses)
-        validate_acc /= opt.validate_count
-        print("Validate: loss: %lf, acc: %lf" % (validate_losses.mean(), validate_acc))
-        print((output.view(-1)-0.5)*(label-0.5)*4)
-        
-        # loss, dist_pos, dist_neg = HingeLoss(feat_a, feat_b, epoch)
-        # print("Test: loss: %lf,  pos: %lf, neg: %lf" % (loss, dist_pos, dist_neg))
-        # loss, dist_pos, dist_neg = HingeLoss(feat_a, feat_b, 0)
-        # print("Test with power 0: loss: %lf,  pos: %lf, neg: %lf" % (loss, dist_pos, dist_neg))
+            validate_losses = np.array(validate_losses)
+            validate_acc /= opt.validate_count
+            print("Validate: loss: %lf, acc: %lf" % (validate_losses.mean(), validate_acc))
+            print((output.view(-1)-0.5)*(label-0.5)*4)
+            
+            # loss, dist_pos, dist_neg = HingeLoss(feat_a, feat_b, epoch)
+            # print("Test: loss: %lf,  pos: %lf, neg: %lf" % (loss, dist_pos, dist_neg))
+            # loss, dist_pos, dist_neg = HingeLoss(feat_a, feat_b, 0)
+            # print("Test with power 0: loss: %lf,  pos: %lf, neg: %lf" % (loss, dist_pos, dist_neg))
         net.train()
 
 # final validate

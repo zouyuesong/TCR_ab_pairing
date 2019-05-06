@@ -62,8 +62,6 @@ for epoch in range(opt.epoch):
     # TODO: the function for lr adjusting
     adjust_learning_rate(optimizer, epoch)
 
-    optimizer.zero_grad()
-
     losses, acc = [], 0
     # totally 42 mini-batches
     for step, (pair, label) in enumerate(train_loader):
@@ -89,6 +87,7 @@ for epoch in range(opt.epoch):
         # print(output[:,0].data.cpu().numpy().mean(), output[:,1].data.cpu().numpy().mean(), label.data.cpu().numpy().mean())
         # embed()
 
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 

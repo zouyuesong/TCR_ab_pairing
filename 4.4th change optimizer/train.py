@@ -20,7 +20,7 @@ from validating import Validate
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--name', required=True)
 parser.add_argument('--epoch', type=int, default=200)
-parser.add_argument('--lr', type=float, default=1e-3)
+parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--batch_size', type=float, default=256)
 parser.add_argument('--length', type=int, default=-1)
 parser.add_argument('--count', type=int, default=-1)

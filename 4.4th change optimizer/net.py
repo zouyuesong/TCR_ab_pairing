@@ -64,10 +64,8 @@ class basicNet(nn.Module):
         # y = self.fc_y(y)
 
         # FIXME: the function f(x, y) can vary   *  max  cat 
-        # f = torch.max(x, y)
+        f = torch.max(x, y)
         # f = torch.cat((x,y), dim=-1)
-        f = x * y
-        # f = torch.relu(f)
         output = self.fc_cls(f)
         output = torch.sigmoid(output)
         return output

@@ -12,31 +12,59 @@ class feature_extractor(nn.Module):
     def __init__(self, length, type, out_dim):
         super(feature_extractor, self).__init__()
         self.length = length
-        d = 5
-        self.init_conv = nn.Conv2d(1, 1, kernel_size=(d, type), padding=(int((d-1)/2), 0))
-        self.init_bn = nn.BatchNorm2d(1)
+        input_size = 5
+        hidden_size = 123
+        hidden_size_2 = int(out_dim/2)
 
+        self.embedding = nn.Embedding(input_size, hidden_size)
+        # Translate
+        # self.init_conv = nn.Conv1d(1, 1, kernel_size=3, stride=3)
+        self.init_conv = nn.Conv2d(1, 1, kernel_size=(3,5), stride=(3,3))
+        self.rnn1 = nn.GRU(40, hidden_size_2, bidirectional=True)
+        
+        self.conv1 = nn.Conv1d(1, 4, kernel_size=4, stride=2, padding=1)
+        self.bn1 = nn.BatchNorm1d(4)
 
-        self.conv1 = nn.Conv2d(1, 4, kernel_size=(3,type), stride=(2,1), padding=(1,0))
-        self.bn1 = nn.BatchNorm2d(4)
-        self.conv2 = nn.Conv1d(4, 8, kernel_size=5, stride=3, padding=2)
+        '''
+        self.conv2 = nn.Conv1d(4, 8, kernel_size=5, stride=2, padding=2) #150
         self.bn2 = nn.BatchNorm1d(8)
+        self.conv3 = nn.Conv1d(8, 16, kernel_size=5, stride=3, padding=2) #50
+        self.bn3 = nn.BatchNorm1d(16)
+
+        self.conv4 = nn.Conv1d(16, 64, kernel_size=5, stride=3, padding=2) #17
+        self.bn4 = nn.BatchNorm1d(64)
+        self.conv5 = nn.Conv1d(64, 128, kernel_size=5, stride=3, padding=2) #5
+        self.bn5 = nn.BatchNorm1d(128)
+
+        self.conv6 = nn.Conv1d(64, 128, kernel_size=5, stride=3, padding=2) #1
+        self.bn6 = nn.BatchNorm1d(128)
+        '''
 
         # TODO: more sophisticated network required
-        self.final_l = 1200 #16*int(length/8)
+        self.final_l = hidden_size_2 * 2#
         self.fc_final = nn.Linear(self.final_l, out_dim)
 
     def forward(self, x):
-        # x = self.init_conv(x)
-        # x = self.init_bn(x)
-        # x = torch.relu(x)
-        # x = x.view(x.size(0), 1, -1)
+        # x (batch, channel, length, type)
+        # x = x.type(torch.cuda.FloatTensor)
+        # TODO: init of x in data_preprocess
+        x = torch.nonzero(x)[:,-1].reshape(x.shape[0:-1])
+        x = x.squeeze(dim=1)
+        # x = x.reshape(x.shape[0], -1, 3)
+        # x = x[:,:,0]*25+x[:,:,-1]*5+x[:,:,2]
 
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = torch.relu(x)
-        
-        x = self.fc_final(x.reshape(-1, self.final_l))
+        x = self.embedding(x)  # batch * length * hidden=128
+        x = x.unsqueeze(dim=1)
+        x = self.init_conv(x)
+        x = x.squeeze(dim=1)
+        x, _ = self.rnn1(x) # b * l * h
+        x = x.mean(dim=1) # FIXME: sum(dim=1)
+        # x = self.conv1(x.unsqueeze(dim=1)) # b * c=4 * h=64
+        # x = self.bn1(x) 
+        # x = torch.relu(x)
+
+        # x = self.fc_final(x.reshape(-1, self.final_l)) # b * out_dim
+        x = x.reshape(-1, self.final_l)
 
         return x
         
@@ -69,7 +97,7 @@ class basicNet(nn.Module):
         f = x * y
         # f = torch.relu(f)
         output = self.fc_cls(f)
-        output = torch.sigmoid(output)
+        output = torch.sigmoid(output.squeeze(-1))
         return output
 
     def forward(self, x, y):

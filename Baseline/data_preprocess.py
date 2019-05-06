@@ -57,5 +57,57 @@ def data_preprocess(dir='../../Data/a_b_chain/'):
     print("validate:", validate_count)
     return train_data, validate_data, length
 
+
+# pair (a, +) --> tuple (a, +, -)
+def sample_negative(data):
+    c = len(data)
+    l = int(data.shape[2]/2)
+    negs = set()
+    while len(negs) < c:
+        a = np.random.randint(len(data))
+        n = np.random.randint(len(data))
+        while a == n:
+            a = np.random.randint(len(data))
+            n = np.random.randint(len(data))
+        negs.add((a,n))
+
+    data_neg = np.array([np.concatenate((data[a,:,:l,:], data[n,:,l:,:]), axis=1) for (a,n) in negs])
+    return data_neg
+    
+def simple(data):
+    label = []
+    for s in data:
+        label.append(s[0,600,2])
+    return label 
+
+def preprocess(data):
+    '''
+    Shuffle pos & neg samples
+    '''
+    data_neg = sample_negative(data)
+    c = len(data)
+
+    data = np.concatenate((data, data_neg))
+    label = np.concatenate((np.zeros(c), np.ones(c)))
+    
+    ids = np.array([i for i in range(2*c)])
+    np.random.shuffle(ids)
+
+    label_shuffled = np.array([label[i] for i in ids])
+    data_shuffled = np.array([data[i] for i in ids])
+    
+    # embed()
+    return (data_shuffled, label_shuffled)
+
+
+
+def get_data():
+    train, validate, length = data_preprocess()
+    train_data, train_label = preprocess(train)
+    validate_data, validate_label = preprocess(validate)
+    train_data = train_data.reshape(train_data.shape[0], -1)
+    validate_data = validate_data.reshape(validate_data.shape[0], -1)
+    return (train_data, train_label), (validate_data, validate_label)
+
 if __name__ == "__main__":
     data_preprocess()

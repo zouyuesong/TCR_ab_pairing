@@ -130,6 +130,7 @@ for epoch in range(opt.epoch):
         # print(output[:,0].data.cpu().numpy().mean(), output[:,1].data.cpu().numpy().mean(), label.data.cpu().numpy().mean())
         # embed()
 
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
